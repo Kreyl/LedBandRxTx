@@ -1,2 +1,7 @@
 *.bak
 Hardware/LedbandRxTx.kicad_pcb-bak
+*.sd
+RFSimulation/InvF01.hfssresults/
+Hardware/LedbandRxTx.dsn
+RFSimulation/InvF01.hfss.auto
+RFSimulation/InvF01.hfss.lock
