@@ -17,6 +17,7 @@
 			<Path name="D:\Nute\HandyDevices\LedbandRxTx\Hardware\LedbandRxTx.dsn"/>
 			</Specctra>
 		</Import>
+		<Export path="D:\Nute\HandyDevices\LedbandRxTx\Hardware\"/>
 		<ARouteSessions>
 		</ARouteSessions>
 	</Document>
