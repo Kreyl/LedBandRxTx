@@ -9,7 +9,5 @@
   (lib (name Radio)(type KiCad)(uri D:\Libs\Kicad\Radio.pretty)(options "")(descr ""))
   (lib (name SO_DIL_TSSOP)(type KiCad)(uri D:\Libs\Kicad\SO_DIL_TSSOP.pretty)(options "")(descr ""))
   (lib (name SOT)(type KiCad)(uri D:\Libs\Kicad\SOT.pretty)(options "")(descr ""))
-  (lib (name switches)(type Legacy)(uri D:\Libs\Kicad\switches.mod)(options "")(descr ""))
-  (lib (name Tittar_kl)(type Legacy)(uri D:\Libs\Kicad\Tittar_kl.mod)(options "")(descr ""))
   (lib (name Installation)(type KiCad)(uri D:\Libs\Kicad\Installation.pretty)(options "")(descr ""))
 )
