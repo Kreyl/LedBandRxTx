@@ -24,7 +24,7 @@ void SimpleSensors_t::Init() {
         States[i] = pssLo;
     }
     // Create and start thread
-    chThdCreateStatic(waPinSnsThread, sizeof(waPinSnsThread), LOWPRIO, (tfunc_t)SensorsThread, NULL);
+    chThdCreateStatic(waPinSnsThread, sizeof(waPinSnsThread), NORMALPRIO, (tfunc_t)SensorsThread, NULL);
 }
 
 __attribute__((noreturn))

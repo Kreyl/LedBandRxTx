@@ -22,7 +22,6 @@ static systime_t LongPressTimer;
 static bool IsRepeating[BUTTONS_CNT];
 static systime_t RepeatTimer;
 #endif
-//static systime_t RepeatTimer, LongPressTimer;
 #if BTN_COMBO
     bool IsCombo;
 #endif

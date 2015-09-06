@@ -67,34 +67,31 @@ void App_t::ITask() {
     // ==== Main cycle ====
     while(true) {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        if(IsTransmitter) {
-            if(EvtMsk & EVTMSK_BUTTONS) {
-                BtnEvtInfo_t EInfo;
-                while(ButtonEvtBuf.Get(&EInfo) == OK) {
-    //                Uart.Printf("\rEinfo: %u, %u", EInfo.Type, EInfo.BtnID[0]);
-                    switch((BtnName_t)EInfo.Name[0]) {
-                        case btnOff:
-                            Brightness = BRT_LOW;
-                            Led.SetColor(clDarkGreen);
-                            break;
+        if(EvtMsk & EVTMSK_BUTTONS) {
+            BtnEvtInfo_t EInfo;
+            while(ButtonEvtBuf.Get(&EInfo) == OK) {
+//                Uart.Printf("\rEinfo: %u, %u", EInfo.Type, EInfo.BtnID[0]);
+                switch((BtnName_t)EInfo.Name[0]) {
+                    case btnOff:
+                        Brightness = BRT_LOW;
+                        Led.SetColor(clDarkGreen);
+                        break;
 
-                        case btnMid:
-                            Brightness = BRT_MID;
-                            Led.SetColor(clDarkYellow);
-                            break;
+                    case btnMid:
+                        Brightness = BRT_MID;
+                        Led.SetColor(clDarkYellow);
+                        break;
 
-                        case btnFull:
-                            Brightness = BRT_FULL;
-                            Led.SetColor(clDarkRed);
-                            break;
-                    } // switch btn
-                } // while get info
-            } // if buttons
-        } // if transmitter
-        else {
-            if(EvtMsk & EVTMSK_NEW_BRT) {
-                Output.Set(Brightness);
-            }
+                    case btnFull:
+                        Brightness = BRT_FULL;
+                        Led.SetColor(clDarkRed);
+                        break;
+                } // switch btn
+            } // while get info
+        } // if buttons
+
+        if(EvtMsk & EVTMSK_NEW_BRT) {
+            Output.Set(Brightness);
         }
     } // while true
 } // Main thread
