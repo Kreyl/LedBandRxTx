@@ -18,6 +18,8 @@ class App_t {
 private:
     Thread *PThread;
 public:
+    bool IsTransmitter;
+    uint8_t Brightness = 0;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {
