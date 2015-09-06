@@ -14,12 +14,16 @@
 #define APP_NAME        "LedbandRxTx"
 #define APP_VERSION     "v1.0"
 
+#define BRT_FULL    255
+#define BRT_MID     72
+#define BRT_LOW     0
+
 class App_t {
 private:
     Thread *PThread;
 public:
     bool IsTransmitter;
-    uint8_t Brightness = 0;
+    uint8_t Brightness = BRT_MID;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {

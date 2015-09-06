@@ -129,9 +129,15 @@ uint32_t BuildUint32(uint8_t Lo, uint8_t MidLo, uint8_t MidHi, uint8_t Hi);
 extern "C" {
 void __attribute__ ((weak)) _init(void)  {}
 }
+
+// =========== Get uniq ID ============
+#define UNIQ_ID_BASE_ADDR       (uint32_t)(0x1FFFF7E8)
+static inline uint32_t GetUniqID32() {
+    return *((uint32_t*)(UNIQ_ID_BASE_ADDR + 4));   // offset=4: U_ID(63:32)
+}
 #endif
 
-#if 1 // ======================= Virtual Timer =================================
+#if 0 // ======================= Virtual Timer =================================
 #define VIRTUAL_TIMER_KL    TRUE
 // Universal VirtualTimer callback
 void TmrVirtualCallback(void *p);
@@ -178,19 +184,9 @@ public:
     }
     TmrVirtual_t() : PThread(nullptr), Period(999), EvtMsk(0), TmrType(tvtOneShot) {}
 };
-
-/*
-void chVTRestart(VirtualTimer *vtp, systime_t time, eventmask_t Evt);
-
-static inline void chVTStartIfNotStarted(VirtualTimer *vtp, systime_t time, eventmask_t Evt) {
-    chSysLock();
-    if(!chVTIsArmedI(vtp)) chVTSetI(vtp, time, TmrOneShotCallback, (void*)Evt);
-    chSysUnlock();
-}
-*/
 #endif
 
-#if 1 // =========================== Time ======================================
+#if 0 // =========================== Time ======================================
 static inline bool TimeElapsed(systime_t *PSince, uint32_t Delay_ms) {
     chSysLock();
     bool Rslt = (systime_t)(chTimeNow() - *PSince) > MS2ST(Delay_ms);
@@ -208,7 +204,7 @@ static inline void Delay_ms(uint32_t Ams) {
 }
 #endif
 
-#if 1 // ======================= Power and backup unit =========================
+#if 0 // ======================= Power and backup unit =========================
 #define REBOOT()                SCB_AIRCR = (AIRCR_VECTKEY | 0x04)
 
 #if defined STM32F2XX || defined STM32F4XX || defined STM32F10X_LD_VL
@@ -228,7 +224,7 @@ static inline void Reset() {
 #endif // STM32F2xx/F4xx
 #endif
 
-#if 1 // ============================= RTC =====================================
+#if 0 // ============================= RTC =====================================
 namespace Rtc {
 #if defined STM32F10X_LD_VL
 // Wait until the RTC registers (RTC_CNT, RTC_ALR and RTC_PRL) are synchronized with RTC APB clock.
@@ -595,7 +591,7 @@ public:
 };
 #endif
 
-#if 0 // ==== External IRQ ====
+#if 1 // ==== External IRQ ====
 enum ExtiTrigType_t {ttRising, ttFalling, ttRisingFalling};
 
 class PinIrq_t {
@@ -625,14 +621,25 @@ public:
     void Setup(GPIO_TypeDef *GPIO, const uint8_t APinNumber, ExtiTrigType_t ATriggerType) {
         IGPIO = GPIO;
         IPinNumber = APinNumber;
+#ifdef STM32F10X_LD_VL
+        RCC->APB2ENR |= RCC_APB2ENR_AFIOEN; // Enable AFIO clock
+#else
         rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, FALSE); // Enable sys cfg controller
+#endif
         // Connect EXTI line to the pin of the port
         uint8_t Indx   = APinNumber / 4;            // Indx of EXTICR register
         uint8_t Offset = (APinNumber & 0x03) * 4;   // Offset in EXTICR register
+#ifdef STM32F10X_LD_VL
+        AFIO->EXTICR[Indx] &= ~((uint32_t)0b1111 << Offset);    // Clear  port-related bits
+        // GPIOA requires all zeroes => nothing to do in this case
+        if     (GPIO == GPIOB) AFIO->EXTICR[Indx] |= (uint32_t)0b0001 << Offset;
+        else if(GPIO == GPIOC) AFIO->EXTICR[Indx] |= (uint32_t)0b0010 << Offset;
+#else
         SYSCFG->EXTICR[Indx] &= ~((uint32_t)0b1111 << Offset);  // Clear port-related bits
         // GPIOA requires all zeroes => nothing to do in this case
         if     (GPIO == GPIOB) SYSCFG->EXTICR[Indx] |= (uint32_t)0b0001 << Offset;
         else if(GPIO == GPIOC) SYSCFG->EXTICR[Indx] |= (uint32_t)0b0010 << Offset;
+#endif
         // Configure EXTI line
         uint32_t IrqMsk = 1 << APinNumber;
         EXTI->IMR  |=  IrqMsk;      // Interrupt mode enabled
@@ -640,7 +647,7 @@ public:
         SetTriggerType(ATriggerType);
         EXTI->PR    =  IrqMsk;      // Clean irq flag
         // Get IRQ channel
-#if defined STM32L1XX_MD || defined STM32F4XX
+#if defined STM32L1XX_MD || defined STM32F4XX || defined STM32F10X_LD_VL
         if      ((APinNumber >= 0)  and (APinNumber <= 4))  IIrqChnl = EXTI0_IRQn + APinNumber;
         else if ((APinNumber >= 5)  and (APinNumber <= 9))  IIrqChnl = EXTI9_5_IRQn;
         else if ((APinNumber >= 10) and (APinNumber <= 15)) IIrqChnl = EXTI15_10_IRQn;
@@ -650,7 +657,7 @@ public:
         else if ((APinNumber >= 4)  and (APinNumber <= 15)) IIrqChnl = EXTI4_15_IRQn;
 #endif
     }
-//    void EnableIrq(const uint32_t Priority) { nvicEnableVector(IIrqChnl, CORTEX_PRIORITY_MASK(Priority)); }
+    void EnableIrq(const uint32_t Priority) { nvicEnableVector(IIrqChnl, CORTEX_PRIORITY_MASK(Priority)); }
     void DisableIrq() { nvicDisableVector(IIrqChnl); }
     void CleanIrqFlag() { EXTI->PR = (1 << IPinNumber); }
 };
@@ -707,7 +714,6 @@ public:
 };
 #endif
 
-#if 1 // ============================== Power ==================================
 #if 0 // ========================== Sleep ======================================
 namespace Sleep {
 static inline void EnterStandby() {
@@ -725,9 +731,8 @@ static inline void ClearStandbyFlag() { PWR->CR |= PWR_CR_CSBF; }
 
 }; // namespace
 #endif
-#endif
 
-#if 0 // ============================== SPI ====================================
+#if 1 // ============================== SPI ====================================
 enum CPHA_t {cphaFirstEdge, cphaSecondEdge};
 enum CPOL_t {cpolIdleLow, cpolIdleHigh};
 enum SpiBaudrate_t {
@@ -783,7 +788,7 @@ public:
 };
 #endif
 
-#if 1 // ============================== I2C ====================================
+#if 0 // ============================== I2C ====================================
 #define I2C_KL  TRUE
 #define I2C_DMATX_MODE  STM32_DMA_CR_CHSEL(DmaChnl) |   \
                         DMA_PRIORITY_LOW | \

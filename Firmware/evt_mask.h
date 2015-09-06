@@ -12,8 +12,6 @@
 #define EVTMSK_NOTHING          0
 // Keys
 #define EVTMSK_BUTTONS      EVENT_MASK(0)
-#define EVTMSK_SECOND       EVENT_MASK(1)
-#define EVTMSK_BTNPRESS_TIMEOUT EVENT_MASK(2)
-
+#define EVTMSK_NEW_BRT      EVENT_MASK(1)
 
 #endif /* EVT_MASK_H_ */
