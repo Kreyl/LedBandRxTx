@@ -56,7 +56,7 @@ struct rPkt_t {
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
-#define RCHNL       180
+#define RCHNL       0
 
 #if 1 // =========================== Timings ===================================
 #define RX_T_MS     7
