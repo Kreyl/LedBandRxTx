@@ -48,9 +48,9 @@ enum BtnName_t {btnOff=0, btnMid=1, btnFull=2};
 
 const PinSns_t PinSns[] = {
         // Buttons
-        {GPIOB, 3, pudPullUp, ProcessButtons, btnFull},
+        {GPIOB, 7, pudPullUp, ProcessButtons, btnFull},
         {GPIOB, 6, pudPullUp, ProcessButtons, btnMid},
-        {GPIOB, 7, pudPullUp, ProcessButtons, btnOff},
+        {GPIOB, 3, pudPullUp, ProcessButtons, btnOff},
 };
 #define PIN_SNS_CNT     countof(PinSns)
 
