@@ -1,97 +1,102 @@
 /*
- * File:   main.cpp
- * Author: Kreyl
- * Project: Armlet2South
+ * main.cpp
  *
- * Created on Feb 05, 2013, 20:27
+ *  Created on: 20 февр. 2014 г.
+ *      Author: g.kruglov
  */
 
-#include "kl_lib.h"
-#include "clocking.h"
-#include "ch.h"
-#include "hal.h"
 #include "main.h"
-#include "buttons.h"
-#include "led.h"
-#include "Sequences.h"
+#include "board.h"
 #include "radio_lvl1.h"
+#include "led.h"
+#include "color.h"
+
+#define REMCTRL_ID  8   // ID of remote control
+
+enum AppState_t { appsIdle = 0, appsRed = 1, appsBlue = 2, appsWhite = 3 };
 
 App_t App;
-LedRGB_t Led { {GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2} };
-PinOutputPWM_t<(BRT_FULL-1), invNotInverted, omPushPull> Output {GPIOB, 8, TIM16, 1};
+LedRGB_t Led { LED_RED_CH, LED_GREEN_CH, LED_BLUE_CH };
 
 int main(void) {
-    // ==== Init clock system ====
-    Clk.SetupBusDividers(ahbDiv2, apbDiv1, apbDiv1);
+    // ==== Init Vcore & clock system ====
+    SetupVCore(vcore1V5);
+//    Clk.SetMSI4MHz();
+//    Clk.SetupFlashLatency(16);
+//    Clk.SwitchToHSI();
     Clk.UpdateFreqValues();
 
-    // ==== Init OS ====
+    // Init OS
     halInit();
     chSysInit();
 
-    // ==== Init Hard & Soft ====
-    JtagDisable();
-    Uart.Init(115200);
-    Uart.Printf("\r%S %S", APP_NAME, APP_VERSION);
-    Clk.PrintFreqs();
-
     App.InitThread();
 
-    // Rx or Tx?
-    PinSetupIn(GPIOA, 15, pudPullUp);
-    chThdSleepMilliseconds(1);
-    App.IsTransmitter = !PinIsSet(GPIOA, 15);
-    PinSetupAnalog(GPIOA, 15);
+    // ==== Init hardware ====
+    Uart.Init(115200, UART_GPIO, UART_TX_PIN, UART_GPIO, UART_RX_PIN);
+    Uart.Printf("\r%S %S\r", APP_NAME, BUILD_TIME);
+    Clk.PrintFreqs();
 
-    if(App.IsTransmitter) {
-        Led.Init();
-        Led.SetColor(clDarkYellow);
-        PinSensors.Init();
-    }
-    else {
-        Output.Init();
-        Output.SetFrequencyHz(2520);
-        App.SignalEvt(EVTMSK_NEW_BRT);
-    }
+    Led.Init();
+    Led.SetColor(clGreen);
 
-    if(Radio.Init() != OK) {
-        if(App.IsTransmitter) Led.StartSequence(lsqFailure);
-        chThdSleepMilliseconds(2700);
-    }
+    // Init radio
+//    bool RadioIsOk = false;
+//    for(int i=0; (i<7 and !RadioIsOk); i++) {
+//        if(Radio.Init() == OK) RadioIsOk = true;
+//    }
+//    if(RadioIsOk) {
+//        Effects.AllTogetherSmoothly(clGreen, 180);
+//        chThdSleepMilliseconds(900);
+//        Effects.AllTogetherSmoothly(clBlack, 180);
+//    }
+//    else {
+//        Effects.AllTogetherNow(clRed);
+//        chThdSleepMilliseconds(180);
+//        Effects.AllTogetherNow(clBlack);
+//        chThdSleepMilliseconds(180);
+//        Effects.AllTogetherNow(clRed);
+//        chThdSleepMilliseconds(180);
+//        Effects.AllTogetherNow(clBlack);
+//        chThdSleepMilliseconds(180);
+//        Effects.AllTogetherNow(clRed);
+//        chThdSleepMilliseconds(180);
+//        Effects.AllTogetherNow(clBlack);
+//    }
 
+    // Main cycle
     App.ITask();
 }
 
-__attribute__ ((__noreturn__))
+__noreturn
 void App_t::ITask() {
-    // ==== Main cycle ====
     while(true) {
-        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        if(EvtMsk & EVTMSK_BUTTONS) {
-            BtnEvtInfo_t EInfo;
-            while(ButtonEvtBuf.Get(&EInfo) == OK) {
-//                Uart.Printf("\rEinfo: %u, %u", EInfo.Type, EInfo.BtnID[0]);
-                switch((BtnName_t)EInfo.Name[0]) {
-                    case btnOff:
-                        Brightness = BRT_LOW;
-                        Led.SetColor(clDarkGreen);
-                        break;
+        __unused eventmask_t Evt = chEvtWaitAny(ALL_EVENTS);
 
-                    case btnMid:
-                        Brightness = BRT_MID;
-                        Led.SetColor(clDarkYellow);
-                        break;
+        if(Evt & EVT_RADIO) {
+        } // Evt
 
-                    case btnFull:
-                        Brightness = BRT_FULL;
-                        Led.SetColor(clDarkRed);
-                        break;
-                } // switch btn
-            } // while get info
-        } // if buttons
-
-        if(EvtMsk & EVTMSK_NEW_BRT) {
-            Output.Set(Brightness);
+#if UART_RX_ENABLED
+        if(Evt & EVT_UART_NEW_CMD) {
+            OnCmd((Shell_t*)&Uart);
+            Uart.SignalCmdProcessed();
         }
+#endif
+
     } // while true
-} // Main thread
+}
+
+#if UART_RX_ENABLED // ======================= Command processing ============================
+void App_t::OnCmd(Shell_t *PShell) {
+	Cmd_t *PCmd = &PShell->Cmd;
+    __attribute__((unused)) int32_t dw32 = 0;  // May be unused in some configurations
+    Uart.Printf("%S\r", PCmd->Name);
+    // Handle command
+    if(PCmd->NameIs("Ping")) {
+        PShell->Ack(OK);
+    }
+
+    else PShell->Ack(CMD_UNKNOWN);
+}
+#endif
+

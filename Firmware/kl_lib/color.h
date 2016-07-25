@@ -5,13 +5,18 @@
  *      Author: Kreyl
  */
 
-#ifndef COLOR_H_
-#define COLOR_H_
+#pragma once
 
 #include "inttypes.h"
+#include "uart.h"
 
 // Mixing two colors
 #define ClrMix(C, B, L)     ((C * L + B * (255 - L)) / 255)
+
+// Smooth delay
+static inline uint32_t CalcDelay(uint16_t AValue, uint32_t Smooth) {
+    return (uint32_t)((Smooth / (AValue+4)) + 1);
+}
 
 struct Color_t {
     union {
@@ -23,13 +28,42 @@ struct Color_t {
     bool operator == (const Color_t &AColor) { return ((R == AColor.R) and (G == AColor.G) and (B == AColor.B)); }
     bool operator != (const Color_t &AColor) { return ((R != AColor.R) or  (G != AColor.G) or  (B != AColor.B)); }
     Color_t& operator = (const Color_t &Right) { R = Right.R; G = Right.G; B = Right.B; return *this; }
-    void Adjust(const Color_t *PColor) {
-        if     (R < PColor->R) R++;
-        else if(R > PColor->R) R--;
-        if     (G < PColor->G) G++;
-        else if(G > PColor->G) G--;
-        if     (B < PColor->B) B++;
-        else if(B > PColor->B) B--;
+    void Adjust(const Color_t &PColor) {
+        if     (R < PColor.R) R++;
+        else if(R > PColor.R) R--;
+        if     (G < PColor.G) G++;
+        else if(G > PColor.G) G--;
+        if     (B < PColor.B) B++;
+        else if(B > PColor.B) B--;
+    }
+    void Adjust(const Color_t &PColor, uint32_t Step) {
+        uint32_t ThrsR = 255 - Step;
+        if(R < PColor.R) {
+            if(R <= ThrsR) R += Step;
+            else R = 255;
+        }
+        else if(R > PColor.R) {
+            if(R >= Step) R -= Step;
+            else R = 0;
+        }
+
+        if(G < PColor.G) {
+            if(G <= ThrsR) G += Step;
+            else G = 255;
+        }
+        else if(G > PColor.G) {
+            if(G >= Step) G -= Step;
+            else G = 0;
+        }
+
+        if(B < PColor.B) {
+            if(B <= ThrsR) B += Step;
+            else B = 255;
+        }
+        else if(B > PColor.B) {
+            if(B >= Step) B -= Step;
+            else B = 0;
+        }
     }
     void Set(uint8_t Red, uint8_t Green, uint8_t Blue) { R = Red; G = Green; B = Blue; }
     void Get(uint8_t *PR, uint8_t *PG, uint8_t *PB) const { *PR = R; *PG = G; *PB = B; }
@@ -43,11 +77,12 @@ struct Color_t {
         rslt |= B >> 3;
         return (uint8_t)rslt;
     }
-    void MixOf(Color_t &Fore, Color_t &Back, uint32_t Brt) {
+    void BeMixOf(const Color_t &Fore, const Color_t &Back, uint32_t Brt) {
         R = ClrMix(Fore.R, Back.R, Brt);
         G = ClrMix(Fore.G, Back.G, Brt);
         B = ClrMix(Fore.B, Back.B, Brt);
     }
+    void Print() { Uart.Printf("{%u, %u, %u}\r", R, G, B); }
 } __attribute__((packed));
 
 // ==== Colors ====
@@ -60,11 +95,14 @@ struct Color_t {
 #define clCyan      ((Color_t){0, 255, 255})
 #define clWhite     ((Color_t){255, 255, 255})
 
-#define clDarkRed   ((Color_t){36,  0,   0})
-#define clDarkGreen ((Color_t){0,   36,  0})
-#define clDarkBlue  ((Color_t){0,   0,   36})
-#define clDarkYellow ((Color_t){36, 36,  0})
-
+#define CL_DARK_V       27
+#define clDarkRed       ((Color_t){CL_DARK_V, 0,         0})
+#define clDarkGreen     ((Color_t){0,         CL_DARK_V, 0})
+#define clDarkBlue      ((Color_t){0,         0,         CL_DARK_V})
+#define clDarkYellow    ((Color_t){CL_DARK_V, CL_DARK_V, 0})
+#define clDarkMagenta   ((Color_t){CL_DARK_V, 0,         CL_DARK_V})
+#define clDarkCyan      ((Color_t){0,         CL_DARK_V, CL_DARK_V})
+#define clDarkWhite     ((Color_t){CL_DARK_V, CL_DARK_V, CL_DARK_V})
 
 #if 0 // ============================ Color table ==============================
 const Color_t ColorTable[] = {
@@ -171,5 +209,3 @@ const Color_t ColorTable[] = {
 };
 #define COLOR_TABLE_SZ  countof(ColorTable)
 #endif
-
-#endif /* COLOR_H_ */

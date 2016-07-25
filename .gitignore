@@ -7,3 +7,6 @@ RFSimulation/InvF01.hfss.auto
 RFSimulation/InvF01.hfss.lock
 Hardware/LedbandRxTx.ses
 Case/CNC/CaseRX.g
+Firmware/.settings/language.settings.xml
+Firmware/.settings/org.eclipse.cdt.core.prefs
+Firmware/.settings/org.eclipse.cdt.managedbuilder.core.prefs

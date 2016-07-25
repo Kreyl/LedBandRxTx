@@ -5,13 +5,21 @@
  *      Author: g.kruglov
  */
 
-#ifndef EVT_MASK_H_
-#define EVT_MASK_H_
+#pragma once
 
-// ========================== Event masks ======================================
-#define EVTMSK_NOTHING          0
-// Keys
-#define EVTMSK_BUTTONS      EVENT_MASK(0)
-#define EVTMSK_NEW_BRT      EVENT_MASK(1)
+// Event masks
+#define EVT_UART_NEW_CMD    EVENT_MASK(1)
+#define EVT_BUTTONS         EVENT_MASK(2)
+#define EVT_OFF             EVENT_MASK(3)
+#define EVT_PILL_CHECK      EVENT_MASK(4)
+#define EVT_LED_SEQ_END     EVENT_MASK(5)
 
-#endif /* EVT_MASK_H_ */
+#define EVT_LEDS_DONE       EVENT_MASK(6)
+
+#define EVT_RADIO           EVENT_MASK(7)
+#define EVT_CLEAR           EVENT_MASK(8)
+
+#define EVT_SAMPLING        EVENT_MASK(24)
+#define EVT_ADC_DONE        EVENT_MASK(25)
+
+#define EVT_EVERY_SECOND    EVENT_MASK(31)

@@ -7,10 +7,12 @@
 
 #include "SimpleSensors.h"
 
+#if SIMPLESENSORS_ENABLED
+
 SimpleSensors_t PinSensors;
 
 // ==== Sensors Thread ====
-static WORKING_AREA(waPinSnsThread, 128);
+static THD_WORKING_AREA(waPinSnsThread, 64);
 __attribute__((noreturn))
 static void SensorsThread(void *arg) {
     chRegSetThreadName("PinSensors");
@@ -24,12 +26,31 @@ void SimpleSensors_t::Init() {
         States[i] = pssLo;
     }
     // Create and start thread
-    chThdCreateStatic(waPinSnsThread, sizeof(waPinSnsThread), NORMALPRIO, (tfunc_t)SensorsThread, NULL);
+    chThdCreateStatic(waPinSnsThread, sizeof(waPinSnsThread), (tprio_t)90, (tfunc_t)SensorsThread, NULL);
 }
+
+void PrintStackSz() {
+    thread_t *PThd = chThdGetSelfX();
+    port_intctx *r13 = (port_intctx *)__get_PSP();
+    int32_t StkSz = PThd->p_stklimit - (stkalign_t *)(r13-1);
+    Uart.PrintfI("StackSz=%d\r", StkSz);
+}
+
+
+#define DSZ     sizeof(waPinSnsThread)
 
 __attribute__((noreturn))
 void SimpleSensors_t::ITask() {
+//    PrintStackSz();
+//    Uart.Printf("DSZ=%u\r", DSZ);
+//    uint32_t dCnt = 108;
     while(true) {
+//        if(dCnt++ >= 99) {
+//            dCnt = 0;
+//            PrintStackSz();
+////            Uart.PrintfNow("%A\r", waPinSnsThread, DSZ, ' ');
+//        }
+
         chThdSleepMilliseconds(SNS_POLL_PERIOD_MS);
         ftVoidPSnsStLen PostProcessor = PinSns[0].Postprocessor;
         uint32_t GroupLen = 0;
@@ -39,11 +60,11 @@ void SimpleSensors_t::ITask() {
         while(i < PIN_SNS_CNT) {
             // Check pin
             if(PinSns[i].IsHi()) {
-                if(States[i] == pssLo) States[i] = pssRising;
+                if(States[i] == pssLo or States[i] == pssFalling) States[i] = pssRising;
                 else States[i] = pssHi;
             }
             else { // is low
-                if(States[i] == pssHi) States[i] = pssFalling;
+                if(States[i] == pssHi or States[i] == pssRising) States[i] = pssFalling;
                 else States[i] = pssLo;
             }
             GroupLen++;
@@ -59,3 +80,5 @@ void SimpleSensors_t::ITask() {
         } // while i
     } // while true
 }
+
+#endif

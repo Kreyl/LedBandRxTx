@@ -5,8 +5,7 @@
  *      Author: Kreyl
  */
 
-#ifndef SEQUENCES_H_
-#define SEQUENCES_H_
+#pragma once
 
 #include "ChunkTypes.h"
 
@@ -190,6 +189,132 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #endif
 
 #if 1 // ============================ LED RGB ==================================
+const LedRGBChunk_t lsqStart[] = {
+        {csSetup, 0, clRed},
+        {csWait, 270},
+        {csSetup, 0, clGreen},
+        {csWait, 270},
+        {csSetup, 0, clBlue},
+        {csWait, 270},
+        {csSetup, 0, clBlack},
+        {csEnd},
+};
+
+#if 1 // ==== Pills ====
+const LedRGBChunk_t lsqPillVitamin[] = {
+        {csSetup, 0, clGreen},
+        {csWait, 702},
+        {csSetup, 0, clBlack},
+        {csWait, 306},
+        {csEnd},
+};
+const LedRGBChunk_t lsqPillCure[] = {
+        {csSetup, 0, clYellow},
+        {csWait, 702},
+        {csSetup, 0, clBlack},
+        {csWait, 306},
+        {csEnd},
+};
+const LedRGBChunk_t lsqPillPanacea[] = {
+        {csSetup, 0, clWhite},
+        {csWait, 702},
+        {csSetup, 0, clBlack},
+        {csWait, 306},
+        {csEnd},
+};
+const LedRGBChunk_t lsqPillEnergetic[] = {
+        {csSetup, 0, clBlue},
+        {csWait, 702},
+        {csSetup, 0, clBlack},
+        {csWait, 306},
+        {csEnd},
+};
+const LedRGBChunk_t lsqPillMaster[] = {
+        {csSetup, 0, clRed},
+        {csWait, 702},
+        {csSetup, 0, clBlack},
+        {csWait, 306},
+        {csEnd},
+};
+
+const LedRGBChunk_t lsqPillBad[] = {
+        {csSetup, 0, clRed},
+        {csWait, 99},
+        {csSetup, 0, clBlack},
+        {csWait, 99},
+        {csSetup, 0, clRed},
+        {csWait, 99},
+        {csSetup, 0, clBlack},
+        {csWait, 99},
+        {csSetup, 0, clRed},
+        {csWait, 99},
+        {csSetup, 0, clBlack},
+        {csWait, 99},
+        {csEnd},
+};
+#endif
+
+#if 1 // ==== Conditions ====
+const LedRGBChunk_t lsqCondBlue[] = {
+        {csSetup, 0, clDarkBlue},
+        {csEnd},
+};
+const LedRGBChunk_t lsqCondGreen[] = {
+        {csSetup, 0, clDarkGreen},
+        {csEnd},
+};
+const LedRGBChunk_t lsqCondYellow[] = {
+        {csSetup, 0, clDarkYellow},
+        {csEnd},
+};
+const LedRGBChunk_t lsqCondRed[] = {
+        {csSetup, 0, clDarkRed},
+        {csEnd},
+};
+
+#define SEQ_VBRED_DELAY    153
+const LedRGBChunk_t lsqCondVBRed[] = {
+        {csSetup, 0, clDarkRed},
+        {csWait, SEQ_VBRED_DELAY},
+        {csSetup, 0, clBlack},
+        {csWait, SEQ_VBRED_DELAY},
+        {csGoto, 0},
+};
+
+const LedRGBChunk_t lsqCondViolet[] = {
+        {csSetup, 0, clDarkMagenta},
+        {csEnd},
+};
+const LedRGBChunk_t lsqCondWhite[] = {
+        {csSetup, 0, clDarkWhite},
+        {csEnd},
+};
+
+// Vibroblink
+#define SEQ_VB_DELAY    99
+const LedRGBChunk_t lsqVibroBlinkGreen[] = {
+        {csSetup, 0, clDarkGreen},
+        {csWait, SEQ_VB_DELAY},
+        {csSetup, 0, clBlack},
+        {csWait, SEQ_VB_DELAY},
+        {csGoto, 0},
+};
+const LedRGBChunk_t lsqVibroBlinkYellow[] = {
+        {csSetup, 0, clDarkYellow},
+        {csWait, SEQ_VB_DELAY},
+        {csSetup, 0, clBlack},
+        {csWait, SEQ_VB_DELAY},
+        {csGoto, 0},
+};
+const LedRGBChunk_t lsqVibroBlinkRed[] = {
+        {csSetup, 0, clDarkRed},
+        {csWait, SEQ_VB_DELAY},
+        {csSetup, 0, clBlack},
+        {csWait, SEQ_VB_DELAY},
+        {csGoto, 0},
+};
+#endif
+
 const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clRed},
         {csWait, 99},
@@ -201,16 +326,6 @@ const LedRGBChunk_t lsqFailure[] = {
         {csWait, 99},
         {csSetup, 0, clRed},
         {csWait, 99},
-        {csSetup, 0, clBlack},
-        {csEnd}
-};
-
-const LedRGBChunk_t lsqOn[] = {
-        {csSetup, 0, clRed},
-        {csEnd}
-};
-
-const LedRGBChunk_t lsqOff[] = {
         {csSetup, 0, clBlack},
         {csEnd}
 };
@@ -239,10 +354,52 @@ const LedSmoothChunk_t lsqEnterIdle[] = {
 
 #endif
 
-#if 0 // ============================= Beeper ==================================
-#define BEEP_VOLUME     2
+#if 1 // ============================= Beeper ==================================
+#define BEEP_VOLUME     2   // Maximum 10
 
-// Type, duration_ms, freq, volume
+#if 1 // ==== Notes ====
+#define La_2    880
+
+#define Do_3    1047
+#define Do_D_3  1109
+#define Re_3    1175
+#define Re_D_3  1245
+#define Mi_3    1319
+#define Fa_3    1397
+#define Fa_D_3  1480
+#define Sol_3   1568
+#define Sol_D_3 1661
+#define La_3    1720
+#define Si_B_3  1865
+#define Si_3    1976
+
+#define Do_4    2093
+#define Do_D_4  2217
+#define Re_4    2349
+#define Re_D_4  2489
+#define Mi_4    2637
+#define Fa_4    2794
+#define Fa_D_4  2960
+#define Sol_4   3136
+#define Sol_D_4 3332
+#define La_4    3440
+#define Si_B_4  3729
+#define Si_4    3951
+
+// Length
+#define OneSixteenth    90
+#define OneEighth       (OneSixteenth * 2)
+#define OneFourth       (OneSixteenth * 4)
+#define OneHalfth       (OneSixteenth * 8)
+#define OneWhole        (OneSixteenth * 16)
+#endif
+
+// Type, BEEP_VOLUME, freq
+const BeepChunk_t bsqOn[] = {
+        {csSetup, 10, 7000},
+        {csEnd}
+};
+
 const BeepChunk_t bsqButton[] = {
         {csSetup, 1, 1975},
         {csWait, 54},
@@ -259,7 +416,32 @@ const BeepChunk_t bsqBeepBeep[] = {
         {csSetup, 0},
         {csEnd}
 };
-#endif
+
+#if 1 // ==== Extensions ====
+// Pill
+const BeepChunk_t bsqBeepPillOk[] = {
+        {csSetup, BEEP_VOLUME, Si_3},
+        {csWait, 180},
+        {csSetup, BEEP_VOLUME, Re_D_4},
+        {csWait, 180},
+        {csSetup, BEEP_VOLUME, Fa_D_4},
+        {csWait, 180},
+        {csSetup, 0},
+        {csEnd}
+};
+
+const BeepChunk_t bsqBeepPillBad[] = {
+        {csSetup, BEEP_VOLUME, Fa_4},
+        {csWait, 180},
+        {csSetup, BEEP_VOLUME, Re_4},
+        {csWait, 180},
+        {csSetup, BEEP_VOLUME, Si_3},
+        {csWait, 180},
+        {csSetup, 0},
+        {csEnd}
+};
+#endif // ext
+#endif // beeper
 
 #if 1 // ============================== Vibro ==================================
 #define VIBRO_VOLUME    27  // 1 to 22
@@ -272,6 +454,7 @@ const BaseChunk_t vsqBrr[] = {
         {csSetup, 0},
         {csEnd}
 };
+
 const BaseChunk_t vsqBrrBrr[] = {
         {csSetup, VIBRO_VOLUME},
         {csWait, VIBRO_SHORT_MS},
@@ -283,6 +466,24 @@ const BaseChunk_t vsqBrrBrr[] = {
         {csEnd}
 };
 
+const BaseChunk_t vsqVibroBlink[] = {
+        {csSetup, VIBRO_VOLUME},
+        {csWait, SEQ_VB_DELAY},
+        {csSetup, 0},
+        {csWait, SEQ_VB_DELAY},
+        {csGoto, 0},
+};
+
+const BaseChunk_t vsqVBRed[] = {
+        {csSetup, VIBRO_VOLUME},
+        {csWait, SEQ_VBRED_DELAY},
+        {csSetup, 0},
+        {csWait, SEQ_VBRED_DELAY},
+        {csGoto, 0},
+};
+
+
+/*
 const BaseChunk_t vsqError[] = {
         {csSetup, VIBRO_VOLUME},
         {csWait, 999},
@@ -323,6 +524,5 @@ const BaseChunk_t vsqMany[] = {
         {csWait, 1008},
         {csGoto, 0}
 };
+*/
 #endif
-
-#endif /* SEQUENCES_H_ */
