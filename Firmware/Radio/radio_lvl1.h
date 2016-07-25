@@ -59,6 +59,8 @@ union rPkt_t {
     struct {
         uint8_t ID;
         uint8_t State;
+        uint8_t CheckID;
+        uint8_t CheckState;
     };
     bool operator == (const rPkt_t &APkt) { return (DWord32 == APkt.DWord32); }
     rPkt_t& operator = (const rPkt_t &Right) { DWord32 = Right.DWord32; return *this; }
@@ -73,9 +75,11 @@ union rPkt_t {
 #define RXTABLE_MAX_CNT 3   // Do not receive if this count reached. Will not indicate more anyway.
 
 #if 1 // ======================= Channels & cycles =============================
-#define RCHNL_MIN       5
-#define RCHNL_MAX       16
-//#define ID2RCHNL(ID)    (RCHNL_MIN + ID)
+#define REMCTRL_ID      8   // ID of remote control
+
+#define RCHNL_MIN       0
+#define RCHNL_MAX       8
+#define ID2RCHNL(ID)    (RCHNL_MIN + ID)
 #endif
 
 #if 1 // =========================== Timings ===================================
@@ -84,10 +88,9 @@ union rPkt_t {
 #define MIN_SLEEP_DURATION_MS   18
 #endif
 
-template <uint32_t Sz>
 class RxTable_t {
 private:
-    rPkt_t IBuf[Sz];
+    rPkt_t IBuf[RXTABLE_SZ];
     uint32_t Cnt = 0;
 public:
     void AddDistinct(rPkt_t &APkt) {
@@ -95,7 +98,7 @@ public:
             if(IBuf[i] == APkt) return;   // do not add what exists
         }
         IBuf[Cnt] = APkt;
-        if(Cnt < Sz-1) Cnt++;
+        if(Cnt < (RXTABLE_SZ-1)) Cnt++;
     }
     uint32_t GetCount() { return Cnt; }
     void Clear() { Cnt = 0; }
@@ -126,7 +129,8 @@ private:
 public:
     thread_t *PThd;
     int8_t Rssi;
-    RxTable_t<RXTABLE_SZ> RxTable;
+    RxTable_t RxTable;
+    bool MustTx = false;
     uint8_t Init();
     // Inner use
     void ITask();

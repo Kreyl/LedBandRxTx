@@ -26,7 +26,7 @@ uint8_t cc1101_t::Init() {
     CsHi();
     // ==== SPI ====
     // MSB first, master, ClkLowIdle, FirstEdge, Baudrate no more than 6.5MHz
-    ISpi.Setup(boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv16);
+    ISpi.Setup(boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv2);
     ISpi.Enable();
     // ==== Init CC ====
     if(Reset() != OK) {

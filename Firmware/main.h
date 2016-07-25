@@ -13,6 +13,10 @@
 #include "evt_mask.h"
 #include "board.h"
 
+enum AppState_t { appsIdle = 0, appsRed = 1, appsBlue = 2, appsWhite = 3, appsStandby = 4 };
+
+extern AppState_t appState;
+
 class App_t {
 private:
     thread_t *PThread;

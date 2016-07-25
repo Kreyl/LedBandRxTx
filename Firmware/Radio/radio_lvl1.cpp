@@ -12,15 +12,15 @@
 #include "uart.h"
 //#include "led.h"
 
-//#define DBG_PINS
+#define DBG_PINS
 
 #ifdef DBG_PINS
 #define DBG_GPIO1   GPIOB
-#define DBG_PIN1    4
-#define DBG1_SET()  PinSet(DBG_GPIO1, DBG_PIN1)
-#define DBG1_CLR()  PinClear(DBG_GPIO1, DBG_PIN1)
+#define DBG_PIN1    12
+#define DBG1_SET()  PinSetHi(DBG_GPIO1, DBG_PIN1)
+#define DBG1_CLR()  PinSetLo(DBG_GPIO1, DBG_PIN1)
 #define DBG_GPIO2   GPIOB
-#define DBG_PIN2    9
+#define DBG_PIN2    13
 #define DBG2_SET()  PinSet(DBG_GPIO2, DBG_PIN2)
 #define DBG2_CLR()  PinClear(DBG_GPIO2, DBG_PIN2)
 #else
@@ -41,10 +41,19 @@ static void rLvl1Thread(void *arg) {
 __noreturn
 void rLevel1_t::ITask() {
     while(true) {
-//            DBG1_SET();
-//            CC.TransmitSync(&Pkt);
-//            DBG1_CLR();
-//            chThdSleepMilliseconds(9);
+        if(MustTx) {
+            Pkt.ID = REMCTRL_ID;
+            Pkt.State = (uint8_t)appState;
+            Pkt.CheckID = Pkt.ID ^ 0xFF;
+            Pkt.CheckState = Pkt.State ^ 0xFF;
+            DBG1_SET();
+            CC.TransmitSync(&Pkt);
+            DBG1_CLR();
+        }
+        else {
+            CC.EnterIdle();
+            chThdSleepMilliseconds(360);
+        }
 
 #if 0        // Demo
         if(App.Mode == 0b0001) { // RX
@@ -74,16 +83,16 @@ void rLevel1_t::ITask() {
 //#else
 #endif
 
-        // Listen channel after channel
-        for(uint8_t chnl=RCHNL_MIN; chnl <= RCHNL_MAX; chnl++) {
-            CC.SetChannel(chnl);
-            uint8_t RxRslt = CC.ReceiveSync(99, &Pkt, &Rssi);
-            if(RxRslt == OK) {
-                Uart.Printf("Ch=%u; Rssi=%d\r", chnl, Rssi);
-                RxTable.AddDistinct(Pkt);
-            }
-        }
-        if(RxTable.GetCount() != 0) App.SignalEvt(EVT_RADIO);
+//        // Listen channel after channel
+//        for(uint8_t chnl=RCHNL_MIN; chnl <= RCHNL_MAX; chnl++) {
+//            CC.SetChannel(chnl);
+//            uint8_t RxRslt = CC.ReceiveSync(99, &Pkt, &Rssi);
+//            if(RxRslt == OK) {
+//                Uart.Printf("Ch=%u; Rssi=%d\r", chnl, Rssi);
+//                RxTable.AddDistinct(Pkt);
+//            }
+//        }
+//        if(RxTable.GetCount() != 0) App.SignalEvt(EVT_RADIO);
 
 #if 0
         // Listen if nobody found, and do not if found
@@ -114,9 +123,9 @@ uint8_t rLevel1_t::Init() {
     PinSetupOut(DBG_GPIO2, DBG_PIN2, omPushPull);
 #endif    // Init radioIC
     if(CC.Init() == OK) {
-        CC.SetTxPower(CC_Pwr0dBm);
+        CC.SetTxPower(CC_PwrPlus5dBm);
         CC.SetPktSize(RPKT_LEN);
-        CC.SetChannel(0);
+        CC.SetChannel(ID2RCHNL(REMCTRL_ID));
 //        CC.EnterPwrDown();
         // Thread
         PThd = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);

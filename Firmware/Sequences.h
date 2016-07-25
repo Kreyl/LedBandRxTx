@@ -189,131 +189,11 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #endif
 
 #if 1 // ============================ LED RGB ==================================
-const LedRGBChunk_t lsqStart[] = {
-        {csSetup, 0, clRed},
-        {csWait, 270},
-        {csSetup, 0, clGreen},
-        {csWait, 270},
-        {csSetup, 0, clBlue},
-        {csWait, 270},
-        {csSetup, 0, clBlack},
-        {csEnd},
+LedRGBChunk_t lsqStart[] = {
+        {csSetup, 180, clGreen},
+        {csSetup, 180, (Color_t){0, 1, 0}},
+        {csEnd}
 };
-
-#if 1 // ==== Pills ====
-const LedRGBChunk_t lsqPillVitamin[] = {
-        {csSetup, 0, clGreen},
-        {csWait, 702},
-        {csSetup, 0, clBlack},
-        {csWait, 306},
-        {csEnd},
-};
-const LedRGBChunk_t lsqPillCure[] = {
-        {csSetup, 0, clYellow},
-        {csWait, 702},
-        {csSetup, 0, clBlack},
-        {csWait, 306},
-        {csEnd},
-};
-const LedRGBChunk_t lsqPillPanacea[] = {
-        {csSetup, 0, clWhite},
-        {csWait, 702},
-        {csSetup, 0, clBlack},
-        {csWait, 306},
-        {csEnd},
-};
-const LedRGBChunk_t lsqPillEnergetic[] = {
-        {csSetup, 0, clBlue},
-        {csWait, 702},
-        {csSetup, 0, clBlack},
-        {csWait, 306},
-        {csEnd},
-};
-const LedRGBChunk_t lsqPillMaster[] = {
-        {csSetup, 0, clRed},
-        {csWait, 702},
-        {csSetup, 0, clBlack},
-        {csWait, 306},
-        {csEnd},
-};
-
-const LedRGBChunk_t lsqPillBad[] = {
-        {csSetup, 0, clRed},
-        {csWait, 99},
-        {csSetup, 0, clBlack},
-        {csWait, 99},
-        {csSetup, 0, clRed},
-        {csWait, 99},
-        {csSetup, 0, clBlack},
-        {csWait, 99},
-        {csSetup, 0, clRed},
-        {csWait, 99},
-        {csSetup, 0, clBlack},
-        {csWait, 99},
-        {csEnd},
-};
-#endif
-
-#if 1 // ==== Conditions ====
-const LedRGBChunk_t lsqCondBlue[] = {
-        {csSetup, 0, clDarkBlue},
-        {csEnd},
-};
-const LedRGBChunk_t lsqCondGreen[] = {
-        {csSetup, 0, clDarkGreen},
-        {csEnd},
-};
-const LedRGBChunk_t lsqCondYellow[] = {
-        {csSetup, 0, clDarkYellow},
-        {csEnd},
-};
-const LedRGBChunk_t lsqCondRed[] = {
-        {csSetup, 0, clDarkRed},
-        {csEnd},
-};
-
-#define SEQ_VBRED_DELAY    153
-const LedRGBChunk_t lsqCondVBRed[] = {
-        {csSetup, 0, clDarkRed},
-        {csWait, SEQ_VBRED_DELAY},
-        {csSetup, 0, clBlack},
-        {csWait, SEQ_VBRED_DELAY},
-        {csGoto, 0},
-};
-
-const LedRGBChunk_t lsqCondViolet[] = {
-        {csSetup, 0, clDarkMagenta},
-        {csEnd},
-};
-const LedRGBChunk_t lsqCondWhite[] = {
-        {csSetup, 0, clDarkWhite},
-        {csEnd},
-};
-
-// Vibroblink
-#define SEQ_VB_DELAY    99
-const LedRGBChunk_t lsqVibroBlinkGreen[] = {
-        {csSetup, 0, clDarkGreen},
-        {csWait, SEQ_VB_DELAY},
-        {csSetup, 0, clBlack},
-        {csWait, SEQ_VB_DELAY},
-        {csGoto, 0},
-};
-const LedRGBChunk_t lsqVibroBlinkYellow[] = {
-        {csSetup, 0, clDarkYellow},
-        {csWait, SEQ_VB_DELAY},
-        {csSetup, 0, clBlack},
-        {csWait, SEQ_VB_DELAY},
-        {csGoto, 0},
-};
-const LedRGBChunk_t lsqVibroBlinkRed[] = {
-        {csSetup, 0, clDarkRed},
-        {csWait, SEQ_VB_DELAY},
-        {csSetup, 0, clBlack},
-        {csWait, SEQ_VB_DELAY},
-        {csGoto, 0},
-};
-#endif
 
 const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clRed},
@@ -329,7 +209,6 @@ const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clBlack},
         {csEnd}
 };
-
 #endif
 
 #if 0 // =========================== LED Smooth ================================
@@ -354,7 +233,7 @@ const LedSmoothChunk_t lsqEnterIdle[] = {
 
 #endif
 
-#if 1 // ============================= Beeper ==================================
+#if 0 // ============================= Beeper ==================================
 #define BEEP_VOLUME     2   // Maximum 10
 
 #if 1 // ==== Notes ====
@@ -443,7 +322,7 @@ const BeepChunk_t bsqBeepPillBad[] = {
 #endif // ext
 #endif // beeper
 
-#if 1 // ============================== Vibro ==================================
+#if 0 // ============================== Vibro ==================================
 #define VIBRO_VOLUME    27  // 1 to 22
 
 #define VIBRO_SHORT_MS          99
