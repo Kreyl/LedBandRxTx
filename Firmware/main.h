@@ -13,13 +13,21 @@
 #include "evt_mask.h"
 #include "board.h"
 
+// Color to transmit
+#define COLOR_TX_R  180
+#define COLOR_TX_G  180
+#define COLOR_TX_B  0
+
+#define CHNL_CNT    4
+
 enum ChannelState_t { stIdle = 0, stWaitingReply, stActivated };
 
 class App_t {
 private:
     thread_t *PThread;
 public:
-    ChannelState_t State[4];
+    ChannelState_t State[CHNL_CNT];
+    uint32_t TimeLeft_s[CHNL_CNT];
     // Eternal methods
     void InitThread() { PThread = chThdGetSelfX(); }
     uint8_t GetDipSwitch();

@@ -25,6 +25,11 @@ const BaseChunk_t lsqWaitReply[] = {
         {csGoto, 0}
 };
 
+const BaseChunk_t lsqActivated[] = {
+        {csSetup, 1},
+        {csEnd}
+};
+
 
 //const BaseChunk_t lsqError[] = {
 //        {csSetup, 0, clRed},
