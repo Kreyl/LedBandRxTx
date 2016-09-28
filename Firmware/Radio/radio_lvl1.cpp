@@ -12,7 +12,7 @@
 #include "uart.h"
 //#include "led.h"
 
-#define DBG_PINS
+//#define DBG_PINS
 
 #ifdef DBG_PINS
 #define DBG_GPIO1   GPIOB
@@ -123,7 +123,7 @@ uint8_t rLevel1_t::Init() {
     PinSetupOut(DBG_GPIO2, DBG_PIN2, omPushPull);
 #endif    // Init radioIC
     if(CC.Init() == OK) {
-        CC.SetTxPower(CC_PwrPlus5dBm);
+        CC.SetTxPower(CC_PwrPlus10dBm);
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(ID2RCHNL(REMCTRL_ID));
 //        CC.EnterPwrDown();
