@@ -14,17 +14,13 @@
 #include "SimpleSensors.h"
 #include "buttons.h"
 
-AppState_t appState = appsStandby;
-
 App_t App;
-LedRGB_t Led { LED_RED_CH, LED_GREEN_CH, LED_BLUE_CH };
+
+LedBlinker_t Led[4] = { {LED0_PIN}, {LED1_PIN}, {LED2_PIN}, {LED3_PIN} };
 
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V5);
-//    Clk.SetMSI4MHz();
-//    Clk.SetupFlashLatency(16);
-//    Clk.SwitchToHSI();
     Clk.UpdateFreqValues();
 
     // Init OS
@@ -38,17 +34,15 @@ int main(void) {
     Uart.Printf("\r%S %S\r", APP_NAME, BUILD_TIME);
     Clk.PrintFreqs();
 
-    Led.Init();
+    for(int i=0; i<4; i++) {
+        Led[i].Init();
+        Led[i].StartOrRestart(lsqStart);
+        chThdSleepMilliseconds(180);
+    }
+
     PinSensors.Init();
 
-    // Init radio
-    bool RadioIsOk = false;
-    for(int i=0; (i<7 and !RadioIsOk); i++) {
-        if(Radio.Init() == OK) RadioIsOk = true;
-    }
-    if(RadioIsOk) Led.SetColor((Color_t){0, 1, 0});
-    else Led.StartSequence(lsqFailure);
-    chThdSleepMilliseconds(900);
+    Radio.Init();
 
     // Main cycle
     App.ITask();
@@ -63,39 +57,18 @@ void App_t::ITask() {
             BtnEvtInfo_t EInfo;
             while(BtnGetEvt(&EInfo) == OK) {
                 if(EInfo.Type == bePress) {
-//                    Uart.Printf("Btn %u\r", EInfo.BtnID);
-                    // Switch state
-                    switch((BtnName_t)EInfo.BtnID) {
-                        case btnRed:
-                            if(appState == appsRed) appState = appsStandby;
-                            else appState = appsRed;
-                            break;
-                        case btnBlue:
-                            if(appState == appsBlue) appState = appsStandby;
-                            else appState = appsBlue;
-                            break;
-                        case btnWhite:
-                            if(appState == appsWhite) appState = appsStandby;
-                            else appState = appsWhite;
-                            break;
-                        case btnOff:
-                            if(appState == appsIdle) appState = appsStandby;
-                            else appState = appsIdle;
-                            break;
-                    } // switch
-                    // Process new state
-                    Radio.MustTx = (appState != appsStandby);
-                    // Indicate
-#define IND_BRT     45
-                    switch(appState) {
-                        case appsRed:     Led.SetColor((Color_t){IND_BRT, 0, 0}); break;
-                        case appsBlue:    Led.SetColor((Color_t){0, 0, IND_BRT}); break;
-                        case appsWhite:   Led.SetColor((Color_t){IND_BRT, IND_BRT, IND_BRT}); break;
-                        case appsIdle:    Led.SetColor((Color_t){IND_BRT, IND_BRT, 0}); break;
-                        case appsStandby: Led.SetColor((Color_t){0, 1, 0}); break;
+                    Uart.Printf("Btn %u\r", EInfo.BtnID);
+                    uint32_t indx = EInfo.BtnID;
+                    if(State[indx] == stIdle) {
+                        Led[indx].StartOrContinue(lsqWaitReply);
+                        State[indx] = stWaitingReply;
+                    }
+                    else if(State[indx] == stWaitingReply) {
+                        Led[indx].Stop();
+                        State[indx] = stIdle;
                     }
                 } // if press
-            }
+            } // while
         } // Evt
 
 #if UART_RX_ENABLED

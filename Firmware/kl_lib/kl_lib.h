@@ -418,6 +418,12 @@ enum PinPullUpDown_t {
     pudPullDown = 0b10
 };
 
+struct PinInputSetup_t {
+    GPIO_TypeDef *PGpio;
+    uint16_t Pin;
+    PinPullUpDown_t PullUpDown;
+};
+
 struct PwmSetup_t {
     GPIO_TypeDef *PGpio;
     uint16_t Pin;
@@ -627,6 +633,15 @@ static inline void PinSetupAnalog(GPIO_TypeDef *PGpioPort, const uint16_t APinNu
 #endif
 }
 
+#ifdef STM32L4XX
+static inline void PinConnectAdc(GPIO_TypeDef *PGpioPort, const uint16_t APinNumber) {
+    SET_BIT(PGpioPort->ASCR, 1<<APinNumber);
+}
+static inline void PinDisconnectAdc(GPIO_TypeDef *PGpioPort, const uint16_t APinNumber) {
+    CLEAR_BIT(PGpioPort->ASCR, 1<<APinNumber);
+}
+#endif
+
 static inline void PinSetupAlterFunc(
         GPIO_TypeDef *PGpioPort,
         const uint16_t APinNumber,
@@ -699,6 +714,10 @@ static inline void PortInit(GPIO_TypeDef *PGpioPort,
         case psLow:      PGpioPort->OSPEEDR = 0x00000000; break;
         case psMedium:   PGpioPort->OSPEEDR = 0x55555555; break;
         case psHigh:     PGpioPort->OSPEEDR = 0xAAAAAAAA; break;
+#elif defined STM32F0XX
+        case psLow:      PGpioPort->OSPEEDR = 0x00000000; break;
+        case psMedium:   PGpioPort->OSPEEDR = 0x55555555; break;
+        case psHigh:     PGpioPort->OSPEEDR = 0xFFFFFFFF; break;
 #endif
     }
 }
@@ -735,6 +754,35 @@ static inline void JtagDisable() {
 #endif
 
 #if 1 // ===================== Pin classes ========================
+class PinOutput_t {
+private:
+    GPIO_TypeDef *PGpio;
+    uint16_t Pin;
+    PinOutMode_t OutputType;
+public:
+    void Init() const { PinSetupOut(PGpio, Pin, OutputType); }
+    void Deinit() const { PinSetupAnalog(PGpio, Pin); }
+    void SetHi() const { PinSetHi(PGpio, Pin); }
+    void SetLo() const { PinSetLo(PGpio, Pin); }
+    void Set(uint32_t Value) const {
+        if(Value == 0) SetLo();
+        else SetHi();
+    }
+    PinOutput_t(GPIO_TypeDef *APGPIO, uint16_t APin, PinOutMode_t AOutputType) :
+        PGpio(APGPIO), Pin(APin), OutputType(AOutputType) {}
+};
+
+class PinInput_t {
+private:
+    const PinInputSetup_t ISetup;
+public:
+    void Init() const { PinSetupInput(ISetup.PGpio, ISetup.Pin, ISetup.PullUpDown); }
+    void Deinit() const { PinSetupAnalog(ISetup.PGpio, ISetup.Pin); }
+    bool IsHi() const { return PinIsHi(ISetup.PGpio, ISetup.Pin); }
+    PinInput_t(const PinInputSetup_t &ASetup) : ISetup(ASetup) {}
+};
+
+
 // ==== PWM output ====
 /* Example:
  * #define LED_R_PIN { GPIOB, 1, TIM3, 4, invInverted, omPushPull, 255 }
@@ -984,6 +1032,7 @@ public:
         if(BitNumber == bitn8) PSpi->CR2 |= 0x0700; // 8bit
         else if(BitNumber == bitn16) PSpi->CR2 |= 0x0F00;
         PSpi->CR2 |= SPI_CR2_FRXTH;
+
 #endif
     }
     void Enable ()       const { PSpi->CR1 |=  SPI_CR1_SPE; }
@@ -1025,13 +1074,13 @@ public:
 };
 #endif
 
-#if I2C1_ENABLED // ========================= I2C ==============================
+#if I2C1_ENABLED && !defined STM32L4XX // ========================= I2C ==============================
 struct i2cParams_t {
     I2C_TypeDef *pi2c;
     GPIO_TypeDef *PGpio;
     uint16_t SclPin;
     uint16_t SdaPin;
-    PinAF_t PinAF;
+    AlterFunc_t PinAF;
     uint32_t BitrateHz;
     // DMA
     const stm32_dma_stream_t *PDmaTx;
@@ -1225,8 +1274,6 @@ public:
     uint32_t AHBFreqHz;     // HCLK: AHB Bus, Core, Memory, DMA; 32 MHz max
     uint32_t APB1FreqHz;    // PCLK1: APB1 Bus clock; 32 MHz max
     uint32_t APB2FreqHz;    // PCLK2: APB2 Bus clock; 32 MHz max
-    uint8_t Timer2_7ClkMulti = 1;
-    uint8_t Timer9_11ClkMulti = 1;
     // SysClk switching
     uint8_t SwitchToHSI();
     uint8_t SwitchToHSE();
@@ -1313,8 +1360,13 @@ enum PllMul_t {
     pllMul16=14
 };
 
+#ifdef STM32F030
+enum PllSrc_t {plsHSIdiv2=0b00, plsHSIdivPREDIV=0b01, plsHSEdivPREDIV=0b10};
+enum ClkSrc_t {csHSI=0b00, csHSE=0b01, csPLL=0b10};
+#else
 enum PllSrc_t {plsHSIdiv2=0b00, plsHSIdivPREDIV=0b01, plsHSEdivPREDIV=0b10, plsHSI48divPREDIV=0b11};
 enum ClkSrc_t {csHSI=0b00, csHSE=0b01, csPLL=0b10, csHSI48=0b11};
+#endif
 
 enum AHBDiv_t {
     ahbDiv1=0b0000,
@@ -1336,7 +1388,9 @@ private:
     uint8_t EnablePLL();
     // To Hsi48 and back again
     uint32_t ISavedAhbDividers;
+#ifdef RCC_CFGR_SW_HSI48
     bool IHsi48WasOn;
+#endif
 public:
     // Frequency values
     uint32_t AHBFreqHz;     // HCLK: AHB Bus, Core, Memory, DMA; 48 MHz max
@@ -1357,13 +1411,19 @@ public:
     void DisableHSE()   { RCC->CR  &= ~RCC_CR_HSEON; }
     void DisableHSI()   { RCC->CR  &= ~RCC_CR_HSION; }
     void DisablePLL()   { RCC->CR  &= ~RCC_CR_PLLON; }
+#ifdef RCC_CR2_HSI48ON
     void DisableHSI48() { RCC->CR2 &= ~RCC_CR2_HSI48ON; }
+#endif
     void DisableCRS();
     // Checks
+#ifdef RCC_CR2_HSI48ON
     bool IsHSI48On() { return (RCC->CR2 & RCC_CR2_HSI48ON); }
+#endif
     uint32_t GetAhbApbDividers() { return RCC->CFGR & (RCC_CFGR_HPRE | RCC_CFGR_PPRE); }
     // Setups
+#ifdef RCC_CFGR3_USBSW
     void SelectUSBClock_HSI48() { RCC->CFGR3 &= ~RCC_CFGR3_USBSW; }
+#endif
     void SetupBusDividers(AHBDiv_t AHBDiv, APBDiv_t APBDiv);
     void SetupBusDividers(uint32_t Dividers);
     uint8_t SetupPLLDividers(uint8_t HsePreDiv, PllMul_t PllMul);
@@ -1488,11 +1548,11 @@ enum AHBDiv_t {
     ahbDiv256=0b1110,
     ahbDiv512=0b1111
 };
+
 enum APBDiv_t {apbDiv1=0b000, apbDiv2=0b100, apbDiv4=0b101, apbDiv8=0b110, apbDiv16=0b111};
-
 enum MCUVoltRange_t {mvrHiPerf, mvrLoPerf};
-
 enum Src48MHz_t { src48None = 0b00, src48PllSai1Q = 0b01, src48PllQ = 0b10, src48Msi = 0b11 };
+enum PllSrc_t { pllsrcNone = 0b00, pllsrcMsi = 0b01, pllsrcHsi16 = 0b10, pllsrcHse = 0b11 };
 
 class Clk_t {
 private:
@@ -1516,7 +1576,12 @@ public:
     void DisableMSI() { RCC->CR &= ~RCC_CR_MSION; }
 
     void SetupBusDividers(AHBDiv_t AHBDiv, APBDiv_t APB1Div, APBDiv_t APB2Div);
-    uint8_t SetupPLLMulDiv(uint32_t M, uint32_t N, uint32_t R, uint32_t Q, uint32_t P = 8);
+    // PLL and PLLSAI
+    void SetupPllSrc(PllSrc_t Src) { MODIFY_REG(RCC->PLLCFGR, RCC_PLLCFGR_PLLSRC, ((uint32_t)Src)); }
+    uint8_t SetupPllMulDiv(uint32_t M, uint32_t N, uint32_t R, uint32_t Q, uint32_t P = 8);
+    uint8_t SetupPllSai1(uint32_t N, uint32_t R);
+    void EnableSai1ROut() { SET_BIT(RCC->PLLSAI1CFGR, RCC_PLLSAI1CFGR_PLLSAI1REN); }
+
     void UpdateFreqValues();
     void EnablePrefeth() { FLASH->ACR |= FLASH_ACR_PRFTEN; }
     void SetupFlashLatency(uint8_t AHBClk_MHz, MCUVoltRange_t VoltRange);

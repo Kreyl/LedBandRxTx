@@ -13,17 +13,10 @@
 #include "uart.h"
 #include "kl_lib.h"
 
-#if 1 // =========================== Common auxilary ===========================
-// TimeToWaitBeforeNextAdjustment = SmoothVar / (N+4) + 1, where N - current LED brightness.
-static inline uint32_t ICalcDelay(uint32_t CurrentBrightness, uint32_t SmoothVar) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
-#endif
-
-#if 0 // ========================= Single LED blinker ==========================
-#define LED_RGB_BLINKER
-
+#if 1 // ========================= Single LED blinker ==========================
 class LedBlinker_t : public BaseSequencer_t<BaseChunk_t> {
 protected:
-    PinOutputPushPull_t IChnl;
+    const PinOutput_t IChnl;
     void ISwitchOff() { Off(); }
     SequencerLoopTask_t ISetup() {
         IChnl.Set(IPCurrentChunk->Value);
@@ -31,24 +24,22 @@ protected:
         return sltProceed;  // Always proceed
     }
 public:
-    LedBlinker_t(const PinOutputPushPull_t AChnl) : BaseSequencer_t(), IChnl(AChnl) {}
+    LedBlinker_t(GPIO_TypeDef *APGPIO, uint16_t APin, PinOutMode_t AOutputType) :
+        BaseSequencer_t(), IChnl(APGPIO, APin, AOutputType) {}
     void Init() {
         IChnl.Init();
         Off();
     }
-    void Off() { IChnl.Set(0); }
-    void On()  { IChnl.Set(1); }
+    void Off() { IChnl.SetLo(); }
+    void On()  { IChnl.SetHi(); }
 };
 #endif
 
 
 #if 0 // ======================== Single Led Smooth ============================
-#define LED_TOP_VALUE       255
-#define LED_INVERTED_PWM    invInverted
-
 class LedSmooth_t : public BaseSequencer_t<LedSmoothChunk_t> {
 private:
-    PinOutputPWM_t<LED_TOP_VALUE, LED_INVERTED_PWM> IChnl;
+    const PinOutputPWM_t IChnl;
     uint8_t ICurrentBrightness;
     void ISwitchOff() { SetBrightness(0); }
     SequencerLoopTask_t ISetup() {
@@ -66,7 +57,7 @@ private:
                 if(ICurrentBrightness == IPCurrentChunk->Brightness) IPCurrentChunk++;
                 else { // Not completed
                     // Calculate time to next adjustment
-                    uint32_t Delay = ICalcDelay(ICurrentBrightness, IPCurrentChunk->Value);
+                    uint32_t Delay = ClrCalcDelay(ICurrentBrightness, IPCurrentChunk->Value);
                     SetupDelay(Delay);
                     return sltBreak;
                 } // Not completed
@@ -76,8 +67,8 @@ private:
         return sltProceed;
     }
 public:
-    LedSmooth_t(const PinOutputPWM_t<LED_TOP_VALUE, LED_INVERTED_PWM> AChnl) :
-        BaseSequencer_t(), IChnl(AChnl), ICurrentBrightness(0) {}
+    LedSmooth_t(const PwmSetup_t APinSetup) :
+        BaseSequencer_t(), IChnl(APinSetup), ICurrentBrightness(0) {}
     void Init() {
         IChnl.Init();
         SetBrightness(0);
@@ -138,9 +129,9 @@ protected:
                 if(ICurrColor == IPCurrentChunk->Color) IPCurrentChunk++;
                 else { // Not completed
                     // Calculate time to next adjustment
-                    uint32_t DelayR = (ICurrColor.R == IPCurrentChunk->Color.R)? 0 : ICalcDelay(ICurrColor.R, IPCurrentChunk->Value);
-                    uint32_t DelayG = (ICurrColor.G == IPCurrentChunk->Color.G)? 0 : ICalcDelay(ICurrColor.G, IPCurrentChunk->Value);
-                    uint32_t DelayB = (ICurrColor.B == IPCurrentChunk->Color.B)? 0 : ICalcDelay(ICurrColor.B, IPCurrentChunk->Value);
+                    uint32_t DelayR = (ICurrColor.R == IPCurrentChunk->Color.R)? 0 : ClrCalcDelay(ICurrColor.R, IPCurrentChunk->Value);
+                    uint32_t DelayG = (ICurrColor.G == IPCurrentChunk->Color.G)? 0 : ClrCalcDelay(ICurrColor.G, IPCurrentChunk->Value);
+                    uint32_t DelayB = (ICurrColor.B == IPCurrentChunk->Color.B)? 0 : ClrCalcDelay(ICurrColor.B, IPCurrentChunk->Value);
                     uint32_t Delay = DelayR;
                     if(DelayG > Delay) Delay = DelayG;
                     if(DelayB > Delay) Delay = DelayB;
@@ -185,24 +176,24 @@ public:
 };
 #endif
 
-#if 0 // =========================== RGB LED with power ========================
+#if 1 // =========================== RGB LED with power ========================
 class LedRGBwPower_t : public LedRGBParent_t {
 private:
     const PinOutput_t PwrPin;
 public:
     LedRGBwPower_t(
-            const PortPinTim_t ARed,
-            const PortPinTim_t AGreen,
-            const PortPinTim_t ABlue,
-            const PortPinOutput_t APwrPin) :
+            const PwmSetup_t ARed,
+            const PwmSetup_t AGreen,
+            const PwmSetup_t ABlue,
+            const PinOutput_t APwrPin) :
                 LedRGBParent_t(ARed, AGreen, ABlue), PwrPin(APwrPin) {}
     void Init() {
         PwrPin.Init();
         LedRGBParent_t::Init();
     }
     void SetColor(Color_t AColor) {
-        if(AColor == clBlack) PwrPin.Lo();
-        else PwrPin.Hi();
+        if(AColor == clBlack) PwrPin.SetLo();
+        else PwrPin.SetHi();
         R.Set(AColor.R);
         G.Set(AColor.G);
         B.Set(AColor.B);

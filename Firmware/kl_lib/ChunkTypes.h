@@ -9,7 +9,7 @@
 
 #include "color.h"
 #include "ch.h"
-#include "uart.h"
+//#include "uart.h"
 
 enum ChunkSort_t {csSetup, csWait, csGoto, csEnd};
 
@@ -81,23 +81,29 @@ public:
         PThread = APThread;
         EvtEnd = AEvt;
     }
-    void StartSequence(const TChunk *PChunk) {
-        if(PChunk == nullptr) Stop();
-        else {
+
+    void StartOrRestart(const TChunk *PChunk) {
+        chSysLock();
+        IPStartChunk = PChunk;   // Save first chunk
+        IPCurrentChunk = PChunk;
+        IProcessSequenceI();
+        chSysUnlock();
+    }
+
+    void StartOrContinue(const TChunk *PChunk) {
+        if(PChunk == IPStartChunk) return; // Same sequence
+        else StartOrRestart(PChunk);
+    }
+
+    void Stop() {
+        if(IPStartChunk != nullptr) {
             chSysLock();
-            IPStartChunk = PChunk;   // Save first chunk
-            IPCurrentChunk = PChunk;
-            IProcessSequenceI();
+            if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+            IPStartChunk = nullptr;
+            IPCurrentChunk = nullptr;
             chSysUnlock();
         }
-    }
-    void Stop() {
-        chSysLock();
-        if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
         ISwitchOff();
-        IPStartChunk = nullptr;
-        IPCurrentChunk = nullptr;
-        chSysUnlock();
     }
     const TChunk* GetCurrentSequence() { return IPStartChunk; }
 

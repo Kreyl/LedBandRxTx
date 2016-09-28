@@ -48,7 +48,7 @@ if(Evt & EVT_BUTTONS) {
 #endif
 
 // Select convenient names
-enum BtnName_t {btnRed=0, btnBlue=1, btnWhite=2, btnOff=3};
+enum BtnName_t {btn0=0, btn1=1, btn2=2, btn3=3};
 
 // Define correct button behavior depending on schematic
 #define BTN_PRESS_STATE         pssFalling

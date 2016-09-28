@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "LedBandRxTx"
-#define APP_NAME            "DalanRemoteCtrl"
+#define APP_NAME            "RedTransmitter"
 
 // MCU type as defined in the ST header.
 #define STM32L151xB
@@ -49,9 +49,14 @@
 #define BTN_OFF_PIN     3
 
 // LED
-#define LED_RED_CH      { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
-#define LED_GREEN_CH    { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }
-#define LED_BLUE_CH     { GPIOB, 5, TIM3, 2, invNotInverted, omPushPull, 255 }
+//#define LED_RED_CH      { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
+//#define LED_GREEN_CH    { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }
+//#define LED_BLUE_CH     { GPIOB, 5, TIM3, 2, invNotInverted, omPushPull, 255 }
+
+#define LED0_PIN        GPIOA, 8,  omPushPull
+#define LED1_PIN        GPIOA, 11, omPushPull
+#define LED2_PIN        GPIOA, 12, omPushPull
+#define LED3_PIN        GPIOA, 15, omPushPull
 
 #endif // GPIO
 

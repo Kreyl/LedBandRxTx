@@ -13,14 +13,13 @@
 #include "evt_mask.h"
 #include "board.h"
 
-enum AppState_t { appsIdle = 0, appsRed = 1, appsBlue = 2, appsWhite = 3, appsStandby = 4 };
-
-extern AppState_t appState;
+enum ChannelState_t { stIdle = 0, stWaitingReply, stActivated };
 
 class App_t {
 private:
     thread_t *PThread;
 public:
+    ChannelState_t State[4];
     // Eternal methods
     void InitThread() { PThread = chThdGetSelfX(); }
     uint8_t GetDipSwitch();
