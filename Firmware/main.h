@@ -20,6 +20,9 @@
 
 #define CHNL_CNT    4
 
+#define TIME_MIN_S  180
+#define TIME_MAX_S  600
+
 enum ChannelState_t { stIdle = 0, stWaitingReply, stActivated };
 
 class App_t {
