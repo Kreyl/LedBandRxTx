@@ -19,7 +19,7 @@ const BaseChunk_t lsqStart[] = {
 
 const BaseChunk_t lsqWaitReply[] = {
         {csSetup, 1},
-        {csWait, 450},
+        {csWait, 1207},
         {csSetup, 0},
         {csWait, 450},
         {csGoto, 0}

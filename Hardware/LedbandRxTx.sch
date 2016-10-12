@@ -1,4 +1,5 @@
 EESchema Schematic File Version 2
+LIBS:LedbandRxTx-rescue
 LIBS:pcb_details
 LIBS:power
 LIBS:Power_kl
@@ -26,7 +27,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L TESTPOINT TP1
+L TESTPOINT-RESCUE-LedbandRxTx TP1
 U 1 1 551801BB
 P 3000 3300
 F 0 "TP1" V 3000 3550 60  0000 C CNN
@@ -429,7 +430,7 @@ F 3 "" H 11000 3250 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L TESTPOINT TP2
+L TESTPOINT-RESCUE-LedbandRxTx TP2
 U 1 1 5519A948
 P 8300 2000
 F 0 "TP2" V 8300 2200 60  0000 C CNN
@@ -440,7 +441,7 @@ F 3 "" H 8300 2000 60  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L TESTPOINT TP3
+L TESTPOINT-RESCUE-LedbandRxTx TP3
 U 1 1 5519A94F
 P 8300 2100
 F 0 "TP3" V 8300 2300 60  0000 C CNN

@@ -31,6 +31,7 @@ private:
 public:
     ChannelState_t State[CHNL_CNT];
     uint32_t TimeLeft_s[CHNL_CNT];
+    bool SendColorIndication;
     // Eternal methods
     void InitThread() { PThread = chThdGetSelfX(); }
     uint8_t GetDipSwitch();

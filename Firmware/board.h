@@ -48,6 +48,9 @@
 #define BTN_WHITE_PIN   6
 #define BTN_OFF_PIN     3
 
+// "Color indication" switch
+#define SWITCH_PIN      GPIOB, 5
+
 // LED
 //#define LED_RED_CH      { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
 //#define LED_GREEN_CH    { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }

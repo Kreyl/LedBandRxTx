@@ -35,9 +35,19 @@ __noreturn
 static void rLvl1Thread(void *arg) {
     chRegSetThreadName("rLvl1");
     while(true) {
-        Radio.PktTx.R = COLOR_TX_R;
-        Radio.PktTx.G = COLOR_TX_G;
-        Radio.PktTx.B = COLOR_TX_B;
+        // Send color or send "black" depending on switch
+        if(App.SendColorIndication == true) {
+            Radio.PktTx.R = COLOR_TX_R;
+            Radio.PktTx.G = COLOR_TX_G;
+            Radio.PktTx.B = COLOR_TX_B;
+        }
+        else {
+            Radio.PktTx.R = 0;
+            Radio.PktTx.G = 0;
+            Radio.PktTx.B = 0;
+        }
+
+        // Iterate channels and send command if required
         for(int i=0; i<CHNL_CNT; i++) {
             if(App.State[i] == stWaitingReply) {
                 CC.SetChannel(ID2RCHNL(i+1));
@@ -47,22 +57,14 @@ static void rLvl1Thread(void *arg) {
                 uint8_t RxRslt = CC.Receive(54, &Radio.PktRx, &Radio.Rssi);
                 if(RxRslt == OK) {
                     Uart.Printf("%d: Rssi=%d\r", i, Radio.Rssi);
-                    // TODO: check TheWord
-                    App.State[i] = stActivated;
-                    App.SignalEvt(EVT_RADIO);
+                    if(Radio.PktRx.TheWord == THE_WORD) {
+                        App.State[i] = stActivated;
+                        App.SignalEvt(EVT_RADIO);
+                    }
                 }
             }
         } // for
         chThdSleepMilliseconds(90);
-
-
-//        uint8_t RxRslt = CC.Receive(54, &Radio.PktRx, &Radio.Rssi);
-//        if(RxRslt == OK) {
-//            Uart.Printf("\rRssi=%d", Radio.Rssi);
-//            CC.Transmit(&Radio.PktTx);  // Send acknowledge
-//            App.SignalEvt(EVT_RADIO);
-//        }
-//        Radio.TryToSleep(360);
     } // while true
 }
 #endif // task

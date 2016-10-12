@@ -48,6 +48,9 @@ int main(void) {
     // Buttons
     PinSensors.Init();
 
+    // "Color indication" switch
+    PinSetupInput(SWITCH_PIN, pudPullUp);
+
     // Potentiometers
     PinSetupAnalog(R0_PIN);
     PinSetupAnalog(R1_PIN);
@@ -84,6 +87,7 @@ void App_t::ITask() {
         }
 
         if(Evt & EVT_BUTTONS) {
+            SendColorIndication = PinIsHi(SWITCH_PIN);
             BtnEvtInfo_t EInfo;
             while(BtnGetEvt(&EInfo) == OK) {
                 if(EInfo.Type == bePress) {
