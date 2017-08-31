@@ -11,35 +11,34 @@
 #include "kl_lib.h"
 #include "kl_buf.h"
 
-#include "PinSnsSettings.h"
 #include "SimpleSensors.h"
 
-#if SIMPLESENSORS_ENABLED
+#ifndef BUTTONS_ENABLED
+#define BUTTONS_ENABLED FALSE
+#endif
+
+#if BUTTONS_ENABLED
 
 /*
  * Example:
-if(Evt & EVT_BUTTONS) {
-    BtnEvtInfo_t EInfo;
-    while(BtnGetEvt(&EInfo) == OK) {
-        if(EInfo.Type == bePress) {
-
-        }
-        else if(EInfo.Type == beLongPress) {
-
-        }
-    }
+            case evtIdButtons:
+                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID);
+                if(Msg.BtnEvtInfo.BtnID == 1) {
  */
 
-#define BUTTONS_CNT     4
-// Select required events. BtnPress is a must.
-#define BTN_RELEASE     FALSE
-#define BTN_LONGPRESS   FALSE   // Send LongPress evt
-#define BTN_REPEAT      FALSE   // Send Repeat evt
-#define BTN_COMBO       FALSE   // Allow combo
+// ================================= Settings ==================================
+#define BUTTONS_CNT                 3
+// Select required events etc.
+#define BTN_SHORTPRESS              TRUE   // beShortPress evt
+#define BTN_RELEASE                 FALSE
+#define BTN_LONGPRESS               FALSE   // Send LongPress evt
+#define BTN_REPEAT                  TRUE   // Send Repeat evt
+#define BTN_COMBO                   FALSE   // Allow combo
+#define BTN_GETSTATE_REQUIRED       FALSE
 
-#define BTN_REPEAT_PERIOD_MS        180
-#define BTN_LONGPRESS_DELAY_MS      2007
-#define BTN_DELAY_BEFORE_REPEAT_MS  (BTN_REPEAT_PERIOD_MS + BTN_LONGPRESS_DELAY_MS)
+#define BTN_REPEAT_PERIOD_MS        54
+#define BTN_LONGPRESS_DELAY_MS      999
+#define BTN_DELAY_BEFORE_REPEAT_MS  450
 
 #if BTN_COMBO
 #define BTNS_EVT_Q_LEN              7   // Length of events' query
@@ -48,16 +47,29 @@ if(Evt & EVT_BUTTONS) {
 #endif
 
 // Select convenient names
-enum BtnName_t {btn0=0, btn1=1, btn2=2, btn3=3};
+enum BtnName_t {btnUp=0, btnDown=1};
 
 // Define correct button behavior depending on schematic
-#define BTN_PRESS_STATE         pssFalling
-#define BTN_RELEASE_STATE       pssRising
-#define BTN_HOLDDOWN_STATE      pssLo
+#define BTN_IDLE_LOW                TRUE
+// =============================================================================
+
+// Selected depending on Idle state
+#if BTN_IDLE_LOW // Change this
+// Do not change this
+#define BTN_IDLE_STATE              pssLo
+#define BTN_HOLDDOWN_STATE          pssHi
+#define BTN_PRESSING_STATE          pssRising
+#define BTN_RELEASING_STATE         pssFalling
+#else
+#define BTN_IDLE_STATE              pssHi
+#define BTN_HOLDDOWN_STATE          pssLo
+#define BTN_PRESSING_STATE          pssFalling
+#define BTN_RELEASING_STATE         pssRising
+#endif
 
 // ==== Types ==== Do not touch
 // BtnEvent: contains info about event type, count of participating btns and array with btn IDs
-enum BtnEvt_t {bePress, beLongPress, beRelease, beCancel, beRepeat, beCombo};
+enum BtnEvt_t {beShortPress, beLongPress, beRelease, beCancel, beRepeat, beCombo};
 struct BtnEvtInfo_t {
     BtnEvt_t Type;
 #if BTN_COMBO
@@ -68,5 +80,5 @@ struct BtnEvtInfo_t {
 #endif
 } __packed;
 
-uint8_t BtnGetEvt(BtnEvtInfo_t *PEvt);
+PinSnsState_t GetBtnState(uint8_t BtnID);
 #endif

@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "LedBandRxTx"
-#define APP_NAME            "RedTransmitter"
+#define APP_NAME            "Buttons1234"
 
 // MCU type as defined in the ST header.
 #define STM32L151xB
@@ -20,9 +20,12 @@
 #define CRYSTAL_FREQ_HZ     12000000
 
 #define SYS_TIM_CLK         (Clk.APB1FreqHz)
-#define I2C1_ENABLED        FALSE
-#define I2C_USE_SEMAPHORE   FALSE
-#define ADC_REQUIRED        TRUE
+
+#define SIMPLESENSORS_ENABLED   FALSE
+#define BUTTONS_ENABLED         FALSE
+#define I2C1_ENABLED            FALSE
+#define I2C_USE_SEMAPHORE       FALSE
+#define ADC_REQUIRED            FALSE
 
 #if 1 // ========================== GPIO =======================================
 // PortMinTim_t: GPIO, Pin, Tim, TimChnl, invInverted, omPushPull, TopValue
@@ -30,42 +33,21 @@
 #define UART_GPIO       GPIOA
 #define UART_TX_PIN     9
 #define UART_RX_PIN     10
-#define UART_AF         AF7 // for USART1 @ GPIOA
 
-// Radio
-#define CC_GPIO         GPIOA
-#define CC_GDO2         2
-#define CC_GDO0         3
-#define CC_SCK          5
-#define CC_MISO         6
-#define CC_MOSI         7
-#define CC_CS           4
+// Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
+#define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
 
 // Buttons
 #define BTN_GPIO        GPIOB
-#define BTN_RED_PIN     9
-#define BTN_BLUE_PIN    7
-#define BTN_WHITE_PIN   6
-#define BTN_OFF_PIN     3
-
-// "Color indication" switch
-#define SWITCH_PIN      GPIOB, 5
+#define BTN_1_PIN       9
+#define BTN_2_PIN       7
+#define BTN_3_PIN       6
+#define BTN_4_PIN       3
 
 // LED
-//#define LED_RED_CH      { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
-//#define LED_GREEN_CH    { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }
-//#define LED_BLUE_CH     { GPIOB, 5, TIM3, 2, invNotInverted, omPushPull, 255 }
-
-#define LED0_PIN        GPIOA, 8,  omPushPull
-#define LED1_PIN        GPIOA, 11, omPushPull
-#define LED2_PIN        GPIOA, 12, omPushPull
-#define LED3_PIN        GPIOA, 15, omPushPull
-
-// ADC inputs
-#define R0_PIN          GPIOB, 12
-#define R1_PIN          GPIOB, 13
-#define R2_PIN          GPIOB, 14
-#define R3_PIN          GPIOB, 15
+#define LED_RED_CH      { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
+#define LED_GREEN_CH    { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }
+#define LED_BLUE_CH     { GPIOB, 5, TIM3, 2, invNotInverted, omPushPull, 255 }
 
 #endif // GPIO
 
@@ -75,9 +57,8 @@
 #endif
 
 #if 1 // ========================== USART ======================================
-#define UART            USART1
-#define UART_TX_REG     UART->DR
-#define UART_RX_REG     UART->DR
+#define CMD_UART        USART1
+#define UART_TXBUF_SZ   1024
 #endif
 
 #if ADC_REQUIRED // ======================= Inner ADC ==========================

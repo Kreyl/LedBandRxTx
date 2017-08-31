@@ -7,15 +7,19 @@
 
 #include "buttons.h"
 #include "ch.h"
-#include "evt_mask.h"
 #include "uart.h"
-#include "main.h" // App.Thread is here
+#include "MsgQ.h"
 
-#if SIMPLESENSORS_ENABLED
+#if BUTTONS_ENABLED
 
-CircBuf_t<BtnEvtInfo_t, BTNS_EVT_Q_LEN> EvtBuf;
+#if BTN_GETSTATE_REQUIRED
+static PinSnsState_t IBtnState[BUTTONS_CNT];
+PinSnsState_t GetBtnState(uint8_t BtnID) {
+    if(BtnID > BUTTONS_CNT) return pssNone;
+    else return IBtnState[BtnID];
+}
+#endif
 
-// ==== Inner use ====
 #if BTN_LONGPRESS
 static bool IsLongPress[BUTTONS_CNT];
 static systime_t LongPressTimer;
@@ -27,15 +31,19 @@ static systime_t RepeatTimer;
 #if BTN_COMBO
     bool IsCombo;
 #endif
-void AddEvtToQueue(BtnEvtInfo_t Evt);
-void AddEvtToQueue(BtnEvt_t AType, uint8_t KeyIndx);
+static void AddEvtToQueue(BtnEvtInfo_t &Evt);
+static void AddEvtToQueue(BtnEvt_t AType, uint8_t KeyIndx);
 
 // ========================= Postprocessor for PinSns ==========================
 void ProcessButtons(PinSnsState_t *BtnState, uint32_t Len) {
+//    Uart.Printf("  %S\r", __FUNCTION__);
 //    Uart.Printf("\r%A", BtnState, Len, ' ');
     for(uint8_t i=0; i<BUTTONS_CNT; i++) {
+#if BTN_GETSTATE_REQUIRED
+        IBtnState[i] = BtnState[i];
+#endif
         // ==== Button Press ====
-        if(BtnState[i] == BTN_PRESS_STATE) {
+        if(BtnState[i] == BTN_PRESSING_STATE) {
 #if BTN_LONGPRESS
             IsLongPress[i] = false;
 #endif
@@ -62,19 +70,22 @@ void ProcessButtons(PinSnsState_t *BtnState, uint32_t Len) {
             }
             else IsCombo = false;
 #endif // combo
-            // Single key pressed, no combo
-            AddEvtToQueue(bePress, i);  // Add single keypress
+
+#if BTN_SHORTPRESS // Single key pressed, no combo
+            AddEvtToQueue(beShortPress, i);  // Add single keypress
+#endif
+
 #if BTN_LONGPRESS
             LongPressTimer = chVTGetSystemTimeX();
 #endif
 #if BTN_REPEAT
-            RepeatTimer = chTimeNow();
+            RepeatTimer = chVTGetSystemTimeX();
 #endif
         } // if press
 
         // ==== Button Release ====
 #if BTN_COMBO || BTN_RELEASE
-        else if(BtnState[i] == BTN_RELEASE_STATE) {
+        else if(BtnState[i] == BTN_RELEASING_STATE) {
 #if BTN_COMBO // Check if combo completely released
             if(IsCombo) {
                 IsCombo = false;
@@ -127,29 +138,22 @@ void ProcessButtons(PinSnsState_t *BtnState, uint32_t Len) {
     } // for i
 }
 
-void AddEvtToQueue(BtnEvtInfo_t Evt) {
-    chSysLock();
-    EvtBuf.Put(&Evt);
-    App.SignalEvtI(EVT_BUTTONS);
-    chSysUnlock();
+__unused
+void AddEvtToQueue(BtnEvtInfo_t &Evt) {
+    EvtMsg_t Msg(evtIdButtons);
+    Msg.BtnEvtInfo = Evt;
+    EvtQMain.SendNowOrExit(Msg);
 }
 
 void AddEvtToQueue(BtnEvt_t AType, uint8_t KeyIndx) {
-    BtnEvtInfo_t IEvt;
-    IEvt.Type = AType;
+    EvtMsg_t Msg(evtIdButtons);
+    Msg.BtnEvtInfo.Type = AType;
 #if BTN_COMBO
-    IEvt.BtnCnt = 1;
-    IEvt.BtnID[0] = KeyIndx;
+    Msg.BtnEvtInfo.BtnCnt = 1;
+    Msg.BtnEvtInfo.BtnID[0] = KeyIndx;
 #elif BUTTONS_CNT != 1
-    IEvt.BtnID = KeyIndx;
+    Msg.BtnEvtInfo.BtnID = KeyIndx;
 #endif
-    chSysLock();
-    EvtBuf.Put(&IEvt);
-    App.SignalEvtI(EVT_BUTTONS);
-    chSysUnlock();
-}
-
-uint8_t BtnGetEvt(BtnEvtInfo_t *PEvt) {
-    return(EvtBuf.Get(PEvt));
+    EvtQMain.SendNowOrExit(Msg);
 }
 #endif
