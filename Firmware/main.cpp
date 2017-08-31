@@ -20,6 +20,9 @@ extern CmdUart_t Uart;
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
+extern cc1101_t CC;
+LedRGB_t Led {LED_RED_CH, LED_GREEN_CH, LED_BLUE_CH};
+
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V5);
@@ -39,6 +42,9 @@ int main(void) {
     // Buttons
     SimpleSensors::Init();
 
+    Led.Init();
+    Led.StartOrRestart(lsqStart);
+
     Radio.Init();
 
     // Main cycle
@@ -51,10 +57,24 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
 
-            case evtIdButtons:
+            case evtIdButtons: {
                 Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID);
-//                if(Msg.BtnEvtInfo.BtnID == 1) {
-                break;
+                // Try to transmit and receive ack
+                bool AckRcvd = false;
+                for(int i=0; i<7; i++) {
+                    Radio.Pkt.Btn = Msg.BtnEvtInfo.BtnID;
+                    Radio.Pkt.TestWord = TEST_WORD;
+                    CC.Recalibrate();
+                    CC.Transmit(&Radio.Pkt);
+                    uint8_t RxRslt = CC.Receive(54, &Radio.Pkt, &Radio.Rssi);
+                    if(RxRslt == retvOk and Radio.Pkt.TestWord == TEST_WORD) {
+                        AckRcvd = true;
+                        break;
+                    }
+                } // for
+                if(AckRcvd) Led.StartOrRestart(lsqSuccess);
+                else Led.StartOrRestart(lsqFailure);
+                } break;
 
             case evtIdShellCmd:
                 OnCmd((Shell_t*)Msg.Ptr);

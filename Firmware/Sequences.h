@@ -9,7 +9,7 @@
 
 #include "ChunkTypes.h"
 
-#if 1 // ============================ LED blink ================================
+#if 0 // ============================ LED blink ================================
 const BaseChunk_t lsqStart[] = {
         {csSetup, 1},
         {csWait, 450},
@@ -41,10 +41,16 @@ const BaseChunk_t lsqActivated[] = {
 
 #endif
 
-#if 0 // ============================ LED RGB ==================================
+#if 1 // ============================ LED RGB ==================================
 LedRGBChunk_t lsqStart[] = {
         {csSetup, 180, clGreen},
         {csSetup, 180, (Color_t){0, 1, 0}},
+        {csEnd}
+};
+
+LedRGBChunk_t lsqSuccess[] = {
+        {csSetup, 90, clGreen},
+        {csSetup, 90, (Color_t){0, 1, 0}},
         {csEnd}
 };
 
@@ -59,7 +65,7 @@ const LedRGBChunk_t lsqFailure[] = {
         {csWait, 99},
         {csSetup, 0, clRed},
         {csWait, 99},
-        {csSetup, 0, clBlack},
+        {csSetup, 0, (Color_t){0, 1, 0}},
         {csEnd}
 };
 #endif

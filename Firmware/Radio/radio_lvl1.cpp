@@ -31,7 +31,7 @@ cc1101_t CC(CC_Setup0);
 
 rLevel1_t Radio;
 
-#if 1 // ================================ Task =================================
+#if 0 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
 __noreturn
 static void rLvl1Thread(void *arg) {
@@ -70,7 +70,7 @@ uint8_t rLevel1_t::Init() {
         CC.SetChannel(RCHNL);
         CC.Recalibrate();
         // Thread
-        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+//        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
         return retvOk;
     }
     else return retvFail;
