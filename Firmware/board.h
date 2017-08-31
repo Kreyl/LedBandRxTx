@@ -21,8 +21,8 @@
 
 #define SYS_TIM_CLK         (Clk.APB1FreqHz)
 
-#define SIMPLESENSORS_ENABLED   FALSE
-#define BUTTONS_ENABLED         FALSE
+#define SIMPLESENSORS_ENABLED   TRUE
+#define BUTTONS_ENABLED         TRUE
 #define I2C1_ENABLED            FALSE
 #define I2C_USE_SEMAPHORE       FALSE
 #define ADC_REQUIRED            FALSE
@@ -38,11 +38,10 @@
 #define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
 
 // Buttons
-#define BTN_GPIO        GPIOB
-#define BTN_1_PIN       9
-#define BTN_2_PIN       7
-#define BTN_3_PIN       6
-#define BTN_4_PIN       3
+#define BTN_1_PIN       GPIOB, 9, pudPullUp
+#define BTN_2_PIN       GPIOB, 7, pudPullUp
+#define BTN_3_PIN       GPIOB, 6, pudPullUp
+#define BTN_4_PIN       GPIOB, 3, pudPullUp
 
 // LED
 #define LED_RED_CH      { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }

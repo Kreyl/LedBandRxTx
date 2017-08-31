@@ -37,7 +37,7 @@ int main(void) {
     Clk.PrintFreqs();
 
     // Buttons
-//    PinSensors.Init();
+    SimpleSensors::Init();
 
     Radio.Init();
 
@@ -51,6 +51,10 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
 
+            case evtIdButtons:
+                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID);
+//                if(Msg.BtnEvtInfo.BtnID == 1) {
+                break;
 
             case evtIdShellCmd:
                 OnCmd((Shell_t*)Msg.Ptr);
